@@ -47,86 +47,10 @@ The trade-off is deliberate: more math, less mechanical compromise.
 
 ---
 
-## Control architecture
-
-```
-            ┌──────────────────────────┐
-            │  Raspberry Pi 4 (vision) │
-            │  OpenCV HSV tracker      │──── pixel offset (UART)
-            └──────────────────────────┘                      │
-                                                              ▼
-  ┌─────────────┐    quaternion     ┌──────────────────────────────┐
-  │   BNO055    │ ────────────────► │   Teensy 4.1                 │
-  │   IMU       │                   │                              │
-  └─────────────┘                   │   q_rel = q_init* ⊗ q_curr   │
-                                    │   → Euler error              │
-                                    │   + cumulative CV error      │
-                                    │   → analytical inverse       │
-                                    │      kinematics (SPM)        │
-                                    │   → cascaded position +      │
-                                    │      velocity PID (SimpleFOC)│
-                                    └──────────────────────────────┘
-                                              │           ▲
-                                       PWM    ▼           │ encoder feedback
-                                    ┌─────────────┐    ┌──────────┐
-                                    │ TMC6300 ×3  │───►│ GM2804×3 │
-                                    └─────────────┘    └──────────┘
-```
-
-**Key design choices:**
-
-- **Analytical inverse kinematics**, adapted from Mghames et al. (2019), running on the MCU. A numerical Python solver was prototyped first to validate the geometry but was too slow to deploy on hardware.
-- **Quaternion-based orientation** error: the relative orientation is computed as `q_rel = q_init* ⊗ q_curr` (Hamilton product with the initial-pose conjugate), then converted to Euler angles for the IK solver.
-- **Singularity avoidance** by limiting motor 2 to `−π/2 < q₂ < π/2`.
-- **Color-based object tracking** in OpenCV: HSV mask → contour detection → bounding box → pixel offset converted to angle via `(pixel_offset / frame_length) · FoV`.
-
----
-
-## Results
-
-The project set five quantitative objectives. Honest scorecard:
-
-| Objective | Target | Achieved | Met? |
-|---|---|---|---|
-| Disturbance rejection | ≤ 10 Hz @ ≤ 10° amp, error ≤ 3° | Performance degrades above ~3 Hz | ✗ |
-| Stabilization error | ≤ 0.05 rad | 0.02 rad at center → 0.1 rad at 0.8 rad displacement | Partial |
-| Tracking range | ≥ 70° H & V | ±80° pitch, ±120° roll & yaw | ✓ |
-| Tracking settling time | ≤ 1 s | ~2 s | ✗ |
-| Tracking static error | ≤ 3° | within 3° | ✓ |
-| Envelope | ≤ 100 × 100 × 100 mm | 100 × 70 × 100 mm | ✓ |
-| Material cost | ≤ €300 (target €200) | ~€300 | Met cap |
-| Camera support | Pi Camera V2 / IMX219 | Yes | ✓ |
-
-**Why the bandwidth fell short:** the limiting factors were (a) the GM2804 motors, chosen for EU availability rather than ideal performance — the smaller, lighter Faulhaber 1509B would have ~4× less mass and proportionally lower inertia, and (b) BNO055 sensor lag and PID tuning constraints. The 9/10 grade reflects that the **architecture was successfully validated** even where the prototype's specific component choices limited absolute performance.
-
-The thesis includes a detailed future-improvements section outlining the path to closing the gap: smaller motors, a custom STM32-based control board, custom PCBs replacing breadboards, a higher-grade IMU, dynamic-model-based feedforward control, and a programmable turntable test rig for repeatable bandwidth measurement.
-
----
-
-## Repository structure
-
-```
-.
-├── firmware/         # Teensy 4.1 + 4.0 C++ control code (SimpleFOC)
-├── vision/           # Raspberry Pi OpenCV tracking pipeline
-├── kinematics/       # Python prototype of analytical & numerical IK
-├── cad/              # Onshape exports of frame, links, joints
-├── docs/
-│   ├── thesis.pdf    # Full BEP report
-│   ├── demo.gif      # Stabilization + tracking demo
-│   └── figures/      # Diagrams, photos, plots
-└── README.md
-```
-
-<!-- TODO: adjust to match the actual repo layout once organized -->
-
----
 
 ## Documents
 
 - [**Full thesis report (PDF)**](docs/thesis.pdf) — design rationale, kinematics derivation, full results
-- Demo videos — stabilization and object tracking
-- [**Final presentation slides**](docs/Final_BEP_presentation.pdf)
 
 ---
 
@@ -142,7 +66,7 @@ This project is being continued as a research repo investigating the dynamics, c
 **Augustas Gerardas Pugžlys**
 BSc Mechanical Engineering (Cum Laude), TU Eindhoven
 MSc Robotics, TU Delft (2026 – )
-[GitHub](https://github.com/RoastedSalsa) · [LinkedIn](#) <!-- TODO: add LinkedIn URL -->
+[GitHub](https://github.com/RoastedSalsa) · [LinkedIn](https://www.linkedin.com/in/augustas-gerardas-pugzlys/) <!-- TODO: add LinkedIn URL -->
 
 ---
 
