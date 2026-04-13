@@ -124,9 +124,9 @@ The thesis includes a detailed future-improvements section outlining the path to
 
 ## Documents
 
-- 📄 [**Full thesis report (PDF)**](docs/thesis.pdf) — design rationale, kinematics derivation, full results
-- 🎞️ Demo videos — stabilization and object tracking
-- 🎤 [**Final presentation slides**](docs/Final_BEP_presentation.pdf)
+- [**Full thesis report (PDF)**](docs/thesis.pdf) — design rationale, kinematics derivation, full results
+- Demo videos — stabilization and object tracking
+- [**Final presentation slides**](docs/Final_BEP_presentation.pdf)
 
 ---
 
